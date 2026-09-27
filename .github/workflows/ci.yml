@@ -119,6 +119,7 @@ jobs:
       - name: Report findings
         if: ${{ !cancelled() }}
         run: |
+          jq -c '{subtype, num_turns, duration_ms, total_cost_usd, findings: (.structured_output.findings // [] | map(.severity))}' review.json || true
           if ! jq -e '.structured_output.findings' review.json > /dev/null 2>&1; then
             echo "::error::The review returned no findings list ($(jq -r '.subtype // "no output"' review.json 2>/dev/null || echo 'no output'))."
             exit 1
