@@ -76,7 +76,7 @@ export function TodosSidebar({
       </div>
       {todos.length === 0 ? (
         <p className="px-3 py-2 text-sm text-ink-soft">
-          Nothing on the list yet. Ask Bartholomew to note something down.
+          Nothing on the list yet. Ask Bartholomew to write something down.
         </p>
       ) : (
         <ul className="flex-1 overflow-y-auto">
