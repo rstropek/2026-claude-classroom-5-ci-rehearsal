@@ -78,7 +78,7 @@ export async function setTodoDoneFor(
   const [row] = await db
     .update(todos)
     .set({ done })
-    .where(and(eq(todos.id, id), eq(todos.userId, userId)))
+    .where(eq(todos.id, id))
     .returning(todoColumns);
   return row ?? null;
 }
