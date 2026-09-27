@@ -45,6 +45,7 @@ drizzle/                          generated migrations
 tests/unit, tests/integration     Vitest (node env by default; *.test.tsx is jsdom)
 tests/e2e                         Playwright against its own `next dev`
 docs/mcp.md                       registering both MCP servers with Claude Code
+.github/workflows/ci.yml          `ci` (lint, unit, build, e2e) on every push; `ai-review` on PRs, a Claude security review failing on high findings
 .agents/skills/ (+ .claude/skills/ copy)   ai-tutor-design, ai-tutor-cli, add-app-to-server, copilotkit, mastra
 .tours/                           CodeTours the README points at
 ```
@@ -109,6 +110,7 @@ docs/mcp.md                       registering both MCP servers with Claude Code
 ### Secrets
 
 - `.env` holds `DATABASE_URL`, `BETTER_AUTH_SECRET`/`BETTER_AUTH_URL`, and `OPENROUTER_API_KEY` (see `.env.example`); never commit it or print its values.
+- The `ai-review` CI job reads the repository secret `ANTHROPIC_API_KEY`, which GitHub withholds from pull requests opened from forks, so the job fails there.
 
 ## Maintenance — for you, the agent
 
