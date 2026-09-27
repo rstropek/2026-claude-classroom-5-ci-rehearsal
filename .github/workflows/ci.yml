@@ -1,0 +1,69 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+# A newer push to the same branch or PR supersedes the run in flight.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      NEXT_TELEMETRY_DISABLED: "1"
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+          cache: npm
+
+      # Also builds the CLI through its `prepare` script.
+      - run: npm ci
+
+      # Nothing in CI calls a model, so the OpenRouter key is a placeholder
+      # and the auth secret is thrown away with the runner.
+      - name: Write .env
+        run: |
+          cat > .env <<EOF
+          DATABASE_URL=file:./data/app.db
+          OPENROUTER_API_KEY=sk-or-v1-ci-placeholder
+          BETTER_AUTH_SECRET=$(openssl rand -base64 32)
+          BETTER_AUTH_URL=http://localhost:3000
+          EOF
+
+      - run: npm run lint
+
+      - run: npm test
+
+      - run: npm run db:migrate
+
+      # `prebuild` bundles the MCP App views the e2e server serves.
+      - run: npm run build
+
+      - run: npx playwright install --with-deps chromium
+
+      # The config skips *.llm.spec.ts unless E2E_LLM is set; the html reporter
+      # is added here only so a failing run has something to upload.
+      - run: npm run test:e2e -- --reporter=list,html
+        env:
+          PLAYWRIGHT_HTML_OPEN: never
+
+      - if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: |
+            playwright-report/
+            test-results/
+          retention-days: 14
+          if-no-files-found: ignore
